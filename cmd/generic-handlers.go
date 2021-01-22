@@ -530,18 +530,17 @@ func setRequestValidityHandler(h http.Handler) http.Handler {
 	})
 }
 
-var fwd = handlers.NewForwarder(&handlers.Forwarder{
-	PassHost:     true,
-	RoundTripper: newGatewayHTTPTransport(1 * time.Hour),
-	Logger: func(err error) {
-		logger.LogIf(GlobalContext, err)
-	},
-})
-
 // setBucketForwardingHandler middleware forwards the path style requests
 // on a bucket to the right bucket location, bucket to IP configuration
 // is obtained from centralized etcd configuration service.
 func setBucketForwardingHandler(h http.Handler) http.Handler {
+	fwd := handlers.NewForwarder(&handlers.Forwarder{
+		PassHost:     true,
+		RoundTripper: newGatewayHTTPTransport(1 * time.Hour),
+		Logger: func(err error) {
+			logger.LogIf(GlobalContext, err)
+		},
+	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if globalDNSConfig == nil || len(globalDomainNames) == 0 || !globalBucketFederation ||
 			guessIsHealthCheckReq(r) || guessIsMetricsReq(r) ||
